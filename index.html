@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WebAR - 20 Marcadores Dinámicos</title>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <style>
+      body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+      #overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: #000; z-index: 10000; display: flex;
+        flex-direction: column; align-items: center; justify-content: center;
+        color: white; font-family: sans-serif; text-align: center; padding: 20px;
+      }
+      #start-btn {
+        padding: 20px 40px; background: #4CAF50; color: white;
+        border: none; border-radius: 50px; font-weight: bold; font-size: 20px; cursor: pointer;
+      }
+      #stop-btn {
+        position: fixed; top: 20px; right: 20px; z-index: 10001;
+        padding: 10px 20px; background: #dc3545; color: white;
+        border: none; border-radius: 5px; font-weight: bold; cursor: pointer;
+        display: none; font-family: sans-serif;
+      }
+      .mindar-ui-overlay { display: none !important; }
+    </style>
+  </head>
+  <body>
+
+    <div id="overlay">
+      <h2>Experiencia AR (20 Marcadores)</h2>
+      <p>Apunta a los marcadores para activar el contenido</p>
+      <button id="start-btn">COMENZAR</button>
+    </div>
+
+    <button id="stop-btn">DETENER</button>
+
+    <a-scene 
+      id="main-scene"
+      mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; uiScanning: no;" 
+      embedded vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+      
+      <a-assets id="video-assets">
+        </a-assets>
+
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+      </a-scene>
+
+    <script>
+      const numTargets = 20; // Cambia este número si necesitas más o menos
+      const sceneEl = document.querySelector('a-scene');
+      const assetsEl = document.querySelector('a-assets');
+      const startBtn = document.getElementById('start-btn');
+      const stopBtn = document.getElementById('stop-btn');
+      const videos = [];
+
+      // 1. Generar Assets y Entidades dinámicamente
+      for (let i = 0; i < numTargets; i++) {
+        // Crear Video Asset
+        const v = document.createElement('video');
+        v.setAttribute('id', `v${i}`);
+        v.setAttribute('src', `./videos/v${i}.mp4`);
+        v.setAttribute('loop', 'true');
+        v.setAttribute('crossorigin', 'anonymous');
+        v.setAttribute('playsinline', '');
+        v.setAttribute('webkit-playsinline', '');
+        v.setAttribute('muted', 'true');
+        assetsEl.appendChild(v);
+        videos.push(v);
+
+        // Crear Entidad de Marcador
+        const entity = document.createElement('a-entity');
+        entity.setAttribute('id', `target${i}`);
+        entity.setAttribute('mindar-image-target', `targetIndex: ${i}`);
+
+        // Crear Plano de Video
+        const plane = document.createElement('a-plane');
+        plane.setAttribute('id', `p${i}`);
+        plane.setAttribute('width', '1');  // Ajusta según proporción de tus videos
+        plane.setAttribute('height', '1'); 
+        plane.setAttribute('position', '0 0 0.1');
+        plane.setAttribute('material', `shader: flat; src: #v${i}`);
+        
+        // Componente para refrescar el video
+        plane.setAttribute('video-refresh', '');
+
+        entity.appendChild(plane);
+        sceneEl.appendChild(entity);
+
+        // Eventos de reproducción
+        entity.addEventListener("targetFound", () => { videos[i].play(); });
+        entity.addEventListener("targetLost", () => { videos[i].pause(); });
+      }
+
+      // Registro del componente de refresco (necesario para MindAR)
+      AFRAME.registerComponent('video-refresh', {
+        tick: function () {
+          const mesh = this.el.getObject3D('mesh');
+          if (mesh && mesh.material && mesh.material.map) {
+            mesh.material.map.needsUpdate = true;
+          }
+        }
+      });
+
+      // Lógica de Inicio
+      startBtn.addEventListener('click', () => {
+        document.getElementById('overlay').style.display = 'none';
+        stopBtn.style.display = 'block';
+        sceneEl.systems["mindar-image-system"].start();
+
+        // Inicializar videos (desbloqueo de audio)
+        videos.forEach(v => {
+          v.muted = false;
+          v.play().then(() => { v.pause(); v.currentTime = 0; });
+        });
+      });
+
+      // Lógica de Detener (Reset total)
+      stopBtn.addEventListener('click', () => {
+        location.reload(); // Es la forma más eficiente de limpiar la RAM con 20 videos
+      });
+    </script>
+  </body>
+</html>
