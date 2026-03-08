@@ -2,63 +2,62 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WebAR - Contador Gigante</title>
+    <title>WebAR - Contador Limpio Moebooru</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
       body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
       
-      /* Pantalla de inicio */
+      /* Pantalla de inicio con degradado elegante */
       #overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: radial-gradient(circle, #1a1a1a 0%, #000000 100%);
         z-index: 10000; display: flex;
         flex-direction: column; align-items: center; justify-content: center;
-        color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: white; font-family: 'Segoe UI', sans-serif;
         text-align: center;
       }
 
-      /* Título */
-      h2 { margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; color: #4CAF50; }
+      h2 { margin-bottom: 5px; letter-spacing: 2px; color: #4CAF50; }
 
-      /* Botón Comenzar */
+      /* Botón de inicio */
       #start-btn {
         padding: 20px 60px; background: #4CAF50; color: white;
         border: none; border-radius: 50px; font-weight: bold; font-size: 22px; 
-        cursor: pointer; box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
-        transition: transform 0.2s; margin-bottom: 40px;
+        cursor: pointer; box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+        margin-bottom: 40px; transition: transform 0.2s;
       }
       #start-btn:active { transform: scale(0.95); }
 
-      /* CONTENEDOR DEL CONTADOR GIGANTE */
+      /* Contenedor del Contador - Estilo Limpio */
       #counter-wrapper {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 30px;
-        border-radius: 20px;
-        border: 2px solid #4CAF50;
-        box-shadow: inset 0 0 15px rgba(76, 175, 80, 0.2), 0 0 25px rgba(0, 0, 0, 0.5);
+        background: rgba(255, 255, 255, 0.03);
+        padding: 25px;
+        border-radius: 15px;
+        border: 1px solid rgba(76, 175, 80, 0.3);
       }
 
       #counter-wrapper p {
-        margin: 0 0 15px 0;
-        font-size: 1.2rem;
+        margin: 0 0 10px 0;
+        font-size: 0.9rem;
         text-transform: uppercase;
-        letter-spacing: 3px;
+        letter-spacing: 2px;
         color: #888;
       }
 
-      /* La imagen del contador se hace más grande aquí */
+      /* Imagen del contador con tema Moebooru */
       #counter-img {
         display: block;
-        height: 80px; /* Tamaño del número */
-        filter: drop-shadow(0 0 10px #4CAF50);
+        height: 70px; /* Tamaño del número */
+        filter: drop-shadow(0 0 5px #4CAF50); /* Brillo suave */
+        background: transparent;
       }
 
       #stop-btn {
         position: fixed; top: 20px; right: 20px; z-index: 10001;
         padding: 12px 25px; background: #ff4444; color: white;
         border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
-        display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        display: none;
       }
 
       .mindar-ui-overlay { display: none !important; }
@@ -68,15 +67,15 @@
 
     <div id="overlay">
       <h2>Experiencia AR</h2>
-      <p style="opacity: 0.6; margin-bottom: 30px;">Proyecto Folklore Jujuy</p>
+      <p style="opacity: 0.6; margin-bottom: 30px;">Proyecto Folklore</p>
       
       <button id="start-btn">COMENZAR</button>
 
       <div id="counter-wrapper">
-        <p>Espectadores</p>
+        <p>Visitas Totales</p>
         <img id="counter-img" 
-             src="https://count.getloli.com/get/@oscar-ar-jujuy-2026?theme=rule" 
-             alt="Contador de Visitas">
+             src="https://count.getloli.com/get/@oscar-ar-jujuy-2026?theme=moebooru" 
+             alt="Contador">
       </div>
     </div>
 
@@ -84,51 +83,4 @@
 
     <a-scene 
       id="main-scene"
-      mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; uiScanning: no;" 
-      embedded vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-      
-      <a-assets id="video-assets"></a-assets>
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-    </a-scene>
-
-    <script>
-      const numTargets = 20; 
-      const sceneEl = document.querySelector('a-scene');
-      const assetsEl = document.querySelector('a-assets');
-      const startBtn = document.getElementById('start-btn');
-      const stopBtn = document.getElementById('stop-btn');
-      const videos = [];
-
-      // Generación automática de marcadores
-      for (let i = 0; i < numTargets; i++) {
-        const v = document.createElement('video');
-        v.setAttribute('id', `v${i}`);
-        v.setAttribute('src', `./videos/v${i}.mp4`);
-        v.setAttribute('loop', 'true');
-        v.setAttribute('crossorigin', 'anonymous');
-        v.setAttribute('playsinline', '');
-        v.setAttribute('webkit-playsinline', '');
-        v.setAttribute('muted', 'true');
-        assetsEl.appendChild(v);
-        videos.push(v);
-
-        const entity = document.createElement('a-entity');
-        entity.setAttribute('mindar-image-target', `targetIndex: ${i}`);
-        const plane = document.createElement('a-plane');
-        plane.setAttribute('width', '1');
-        plane.setAttribute('height', '1'); 
-        plane.setAttribute('position', '0 0 0.1');
-        plane.setAttribute('material', `shader: flat; src: #v${i}`);
-        plane.setAttribute('video-refresh', '');
-        entity.appendChild(plane);
-        sceneEl.appendChild(entity);
-
-        entity.addEventListener("targetFound", () => { videos[i].play(); });
-        entity.addEventListener("targetLost", () => { videos[i].pause(); });
-      }
-
-      AFRAME.registerComponent('video-refresh', {
-        tick: function () {
-          const mesh = this.el.getObject3D('mesh');
-          if (mesh && mesh.material && mesh.material.map) {
-            mesh
+      mindar-image="imageTargetSrc: ./targets.mind; autoStart: false; uiScanning: no;"
