@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WebAR - 20 Marcadores Dinámicos</title>
+    <title>WebAR - 20 Marcadores con Contador</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
@@ -23,9 +23,12 @@
         border: none; border-radius: 5px; font-weight: bold; cursor: pointer;
         display: none; font-family: sans-serif;
       }
-      /* Estilo para mostrar el contador en el overlay */
+      /* Estilo del contador */
       #visit-counter {
-        margin-top: 15px; font-size: 0.9rem; opacity: 0.7;
+        margin-top: 20px;
+        font-size: 1.1rem;
+        color: #FFD700; /* Color dorado para resaltar */
+        font-weight: bold;
       }
       .mindar-ui-overlay { display: none !important; }
     </style>
@@ -33,10 +36,10 @@
   <body>
 
     <div id="overlay">
-      <h2>Experiencia AR (20 Marcadores)</h2>
+      <h2>Experiencia AR Interactiva</h2>
       <p>Apunta a los marcadores para activar el contenido</p>
       <button id="start-btn">COMENZAR</button>
-      <div id="visit-counter">Cargando visitas...</div>
+      <div id="visit-counter">Contando visitas...</div>
     </div>
 
     <button id="stop-btn">DETENER</button>
@@ -59,21 +62,30 @@
       const counterEl = document.getElementById('visit-counter');
       const videos = [];
 
-      // --- LÓGICA DEL CONTADOR (CountAPI) ---
-      // Reemplaza 'mi-proyecto-ar-2026' con un nombre único para tu proyecto
-      const namespace = "experiencia-ar-oscar";
-      const key = "visitas-totales";
+      // --- CONFIGURACIÓN DEL CONTADOR ---
+      // Usaremos un servicio alternativo de conteo simple
+      const projectName = "oscar_folklore_jujuy_2026"; 
 
-      // Obtener visitas actuales al cargar la página (sin sumar todavía)
-      fetch(`https://api.countapi.xyz/get/${namespace}/${key}`)
-        .then(res => res.json())
-        .then(res => {
-          counterEl.innerText = `Visitas totales: ${res.value || 0}`;
-        })
-        .catch(() => {
-          counterEl.innerText = ""; // Si falla, ocultamos el texto
-        });
+      async function updateCounter(isHit) {
+        try {
+          // Usamos un servicio de conteo que devuelve el valor actual
+          // 'hit' suma uno, 'get' solo consulta
+          const action = isHit ? 'hit' : 'get';
+          const response = await fetch(`https://api.countapi.xyz/${action}/${projectName}/visitas`);
+          const data = await response.json();
+          if(data.value) {
+            counterEl.innerText = `Visitas totales: ${data.value}`;
+          }
+        } catch (error) {
+          console.error("Error con el contador:", error);
+          counterEl.innerText = "Bienvenido a la experiencia";
+        }
+      }
 
+      // Cargar visitas al abrir la página (solo consulta)
+      updateCounter(false);
+
+      // Generación dinámica de los 20 marcadores
       for (let i = 0; i < numTargets; i++) {
         const v = document.createElement('video');
         v.setAttribute('id', `v${i}`);
@@ -87,11 +99,9 @@
         videos.push(v);
 
         const entity = document.createElement('a-entity');
-        entity.setAttribute('id', `target${i}`);
         entity.setAttribute('mindar-image-target', `targetIndex: ${i}`);
 
         const plane = document.createElement('a-plane');
-        plane.setAttribute('id', `p${i}`);
         plane.setAttribute('width', '1');
         plane.setAttribute('height', '1'); 
         plane.setAttribute('position', '0 0 0.1');
@@ -115,9 +125,8 @@
       });
 
       startBtn.addEventListener('click', () => {
-        // --- SUMAR VISITA AL COMENZAR ---
-        fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
-          .catch(err => console.error("Error al contar visita", err));
+        // Sumar visita real al hacer clic en comenzar
+        updateCounter(true);
 
         document.getElementById('overlay').style.display = 'none';
         stopBtn.style.display = 'block';
