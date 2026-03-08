@@ -2,9 +2,12 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WebAR - 20 Marcadores con Contador Real</title>
+    <title>WebAR - 20 Marcadores con Contador Estable</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    
+    <script data-goatcounter="https://oscar-folklore.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
     <style>
       body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
       #overlay {
@@ -23,15 +26,8 @@
         border: none; border-radius: 5px; font-weight: bold; cursor: pointer;
         display: none; font-family: sans-serif;
       }
-      /* Estilo del contador resaltado */
-      #visit-counter {
-        margin-top: 20px;
-        font-size: 1.2rem;
-        color: #00FF00; /* Verde neón para asegurar visibilidad */
-        font-weight: bold;
-        background: rgba(255, 255, 255, 0.1);
-        padding: 10px 20px;
-        border-radius: 10px;
+      #status-ar {
+        margin-top: 20px; font-size: 1rem; color: #00FF00; font-weight: bold;
       }
       .mindar-ui-overlay { display: none !important; }
     </style>
@@ -42,7 +38,7 @@
       <h2>Experiencia AR Interactiva</h2>
       <p>Apunta a los marcadores para activar el contenido</p>
       <button id="start-btn">COMENZAR</button>
-      <div id="visit-counter">Cargando contador...</div>
+      <div id="status-ar">Sistema Listo - Registro Activo</div>
     </div>
 
     <button id="stop-btn">DETENER</button>
@@ -62,39 +58,9 @@
       const assetsEl = document.querySelector('a-assets');
       const startBtn = document.getElementById('start-btn');
       const stopBtn = document.getElementById('stop-btn');
-      const counterEl = document.getElementById('visit-counter');
       const videos = [];
 
-      // --- NUEVA LÓGICA DE CONTADOR CON HITTASTIC ---
-      // Esta URL es única para tu proyecto de Oscar
-      const counterURL = "https://cdn.hittastic.com/v1/oscar-folklore-jujuy-2026/counter.js";
-
-      function loadVisits() {
-        // Usamos un servicio de imagen/script que es más difícil que falle por bloqueos de red
-        const img = new Image();
-        img.src = `https://api.countapi.xyz/hit/oscar-folklore-jujuy-2026/visitas?${Math.random()}`;
-        
-        // Como alternativa infalible, consultamos el valor y lo pintamos
-        fetch(`https://api.countapi.xyz/get/oscar-folklore-jujuy-2026/visitas`)
-          .then(res => res.json())
-          .then(data => {
-            if(data.value) {
-              counterEl.innerText = `Visitas totales: ${data.value}`;
-            } else {
-              counterEl.innerText = "¡Sé el primero en ver esta experiencia!";
-            }
-          })
-          .catch(() => {
-            // Tercer intento: Si la API global falla, mostramos un número simulado basado en tiempo
-            // para que nunca se quede en "Cargando"
-            counterEl.innerText = "Visitas activas: Conectado";
-          });
-      }
-
-      // Cargar al inicio
-      loadVisits();
-
-      // Generación de marcadores (Mantiene tu lógica original de 20 targets)
+      // Generación de marcadores (Mantiene tu lógica de 20 targets)
       for (let i = 0; i < numTargets; i++) {
         const v = document.createElement('video');
         v.setAttribute('id', `v${i}`);
@@ -134,8 +100,14 @@
       });
 
       startBtn.addEventListener('click', () => {
-        // Registrar el "hit" (visita) al comenzar
-        fetch(`https://api.countapi.xyz/hit/oscar-folklore-jujuy-2026/visitas`);
+        // Registro de evento manual al iniciar
+        if (window.goatcounter && window.goatcounter.count) {
+          window.goatcounter.count({
+            path:  'inicio-experiencia-ar',
+            title: 'Usuario comenzó la experiencia',
+            event: true,
+          });
+        }
 
         document.getElementById('overlay').style.display = 'none';
         stopBtn.style.display = 'block';
