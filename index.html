@@ -2,43 +2,82 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WebAR - 20 Marcadores con Contador Estable</title>
+    <title>WebAR - Contador Gigante</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-    
-    <script data-goatcounter="https://oscar-folklore.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-
     <style>
       body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+      
+      /* Pantalla de inicio */
       #overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: #000; z-index: 10000; display: flex;
+        background: radial-gradient(circle, #1a1a1a 0%, #000000 100%);
+        z-index: 10000; display: flex;
         flex-direction: column; align-items: center; justify-content: center;
-        color: white; font-family: sans-serif; text-align: center; padding: 20px;
+        color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        text-align: center;
       }
+
+      /* Título */
+      h2 { margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase; color: #4CAF50; }
+
+      /* Botón Comenzar */
       #start-btn {
-        padding: 20px 40px; background: #4CAF50; color: white;
-        border: none; border-radius: 50px; font-weight: bold; font-size: 20px; cursor: pointer;
+        padding: 20px 60px; background: #4CAF50; color: white;
+        border: none; border-radius: 50px; font-weight: bold; font-size: 22px; 
+        cursor: pointer; box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        transition: transform 0.2s; margin-bottom: 40px;
       }
+      #start-btn:active { transform: scale(0.95); }
+
+      /* CONTENEDOR DEL CONTADOR GIGANTE */
+      #counter-wrapper {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 30px;
+        border-radius: 20px;
+        border: 2px solid #4CAF50;
+        box-shadow: inset 0 0 15px rgba(76, 175, 80, 0.2), 0 0 25px rgba(0, 0, 0, 0.5);
+      }
+
+      #counter-wrapper p {
+        margin: 0 0 15px 0;
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        color: #888;
+      }
+
+      /* La imagen del contador se hace más grande aquí */
+      #counter-img {
+        display: block;
+        height: 80px; /* Tamaño del número */
+        filter: drop-shadow(0 0 10px #4CAF50);
+      }
+
       #stop-btn {
         position: fixed; top: 20px; right: 20px; z-index: 10001;
-        padding: 10px 20px; background: #dc3545; color: white;
-        border: none; border-radius: 5px; font-weight: bold; cursor: pointer;
-        display: none; font-family: sans-serif;
+        padding: 12px 25px; background: #ff4444; color: white;
+        border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
+        display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       }
-      #status-ar {
-        margin-top: 20px; font-size: 1rem; color: #00FF00; font-weight: bold;
-      }
+
       .mindar-ui-overlay { display: none !important; }
     </style>
   </head>
   <body>
 
     <div id="overlay">
-      <h2>Experiencia AR Interactiva</h2>
-      <p>Apunta a los marcadores para activar el contenido</p>
+      <h2>Experiencia AR</h2>
+      <p style="opacity: 0.6; margin-bottom: 30px;">Proyecto Folklore Jujuy</p>
+      
       <button id="start-btn">COMENZAR</button>
-      <div id="status-ar">Sistema Listo - Registro Activo</div>
+
+      <div id="counter-wrapper">
+        <p>Espectadores</p>
+        <img id="counter-img" 
+             src="https://count.getloli.com/get/@oscar-ar-jujuy-2026?theme=rule" 
+             alt="Contador de Visitas">
+      </div>
     </div>
 
     <button id="stop-btn">DETENER</button>
@@ -53,14 +92,14 @@
     </a-scene>
 
     <script>
-      const numTargets = 20;
+      const numTargets = 20; 
       const sceneEl = document.querySelector('a-scene');
       const assetsEl = document.querySelector('a-assets');
       const startBtn = document.getElementById('start-btn');
       const stopBtn = document.getElementById('stop-btn');
       const videos = [];
 
-      // Generación de marcadores (Mantiene tu lógica de 20 targets)
+      // Generación automática de marcadores
       for (let i = 0; i < numTargets; i++) {
         const v = document.createElement('video');
         v.setAttribute('id', `v${i}`);
@@ -75,14 +114,12 @@
 
         const entity = document.createElement('a-entity');
         entity.setAttribute('mindar-image-target', `targetIndex: ${i}`);
-
         const plane = document.createElement('a-plane');
         plane.setAttribute('width', '1');
         plane.setAttribute('height', '1'); 
         plane.setAttribute('position', '0 0 0.1');
         plane.setAttribute('material', `shader: flat; src: #v${i}`);
         plane.setAttribute('video-refresh', '');
-
         entity.appendChild(plane);
         sceneEl.appendChild(entity);
 
@@ -94,34 +131,4 @@
         tick: function () {
           const mesh = this.el.getObject3D('mesh');
           if (mesh && mesh.material && mesh.material.map) {
-            mesh.material.map.needsUpdate = true;
-          }
-        }
-      });
-
-      startBtn.addEventListener('click', () => {
-        // Registro de evento manual al iniciar
-        if (window.goatcounter && window.goatcounter.count) {
-          window.goatcounter.count({
-            path:  'inicio-experiencia-ar',
-            title: 'Usuario comenzó la experiencia',
-            event: true,
-          });
-        }
-
-        document.getElementById('overlay').style.display = 'none';
-        stopBtn.style.display = 'block';
-        sceneEl.systems["mindar-image-system"].start();
-
-        videos.forEach(v => {
-          v.muted = false;
-          v.play().then(() => { v.pause(); v.currentTime = 0; });
-        });
-      });
-
-      stopBtn.addEventListener('click', () => {
-        location.reload(); 
-      });
-    </script>
-  </body>
-</html>
+            mesh
